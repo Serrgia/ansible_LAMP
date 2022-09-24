@@ -1,0 +1,75 @@
+---
+# tasks file for ansible_LAMP
+
+    - name: install Apache2
+      apt: name=apache2 state=latest
+
+    - name: enable rewrite module
+      shell: /usr/sbin/a2enmod rewrite
+      notify: Reload Apache
+
+    - name: install php
+      apt: name={{ item }} state=latest
+      loop:
+        - php7.4
+        - php7.4-mysql
+        - libapache2-mod-php7.4
+        - php7.4-cli
+        - php7.4-cgi
+        - php7.4-gd
+
+    - name: install MariaDB server
+      apt: name=mariadb-server state=latest
+
+    - name: install MariaDB client
+      apt: name=mariadb-client state=latest
+
+    - name: install Python3
+      apt: name=python3-pymysql
+
+    - name: create new db MariaDB for WordPress
+      mysql_db:
+           name: test
+           state: present
+           login_user: root
+           login_password: root
+
+    - name: create MySQL user for WordPress
+      mysql_user:
+           name: user
+           password: 1234qweR
+           priv: "test.*:ALL"
+           state: present
+           login_user: root
+           login_password: root
+
+    - name: download WordPress and unpack
+      unarchive:
+           src: https://wordpress.org/latest.tar.gz
+           dest: "/var/www/html"
+           remote_src: yes
+           creates: "/var/www/html/wordpress"
+
+    - name: change default Apache site
+      lineinfile:
+           dest=/etc/apache2/sites-available/000-default.conf
+           regexp="(.)+DocumentRoot /var/www/html"
+           line="DocumentRoot /var/www/html/wordpress"
+      notify: Reload Apache
+
+    - name: ownership
+      file:
+           path: "/var/www/html/wordpress"
+           state: directory
+           recurse: yes
+           owner: www-data
+           group: www-data
+
+    - name: permissions for directories
+      shell: "/usr/bin/find /var/www/html/wordpress/ -type d -exec chmod 750 {} \\;"
+
+    - name: permissions for files
+      shell: "/usr/bin/find /var/www/html/wordpress/ -type f -exec chmod 640 {} \\;"
+
+    - name: copy config file
+      copy: src=wp-config-sample.php dest={{ destin_file }} mode=0555

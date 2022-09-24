@@ -1,0 +1,5 @@
+---
+# vars file for ansible_LAMP
+source_file: /home/user/ansible/wp-config-sample.php
+destin_file: /var/www/html/wordpress/wp-config.php
+

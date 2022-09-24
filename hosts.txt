@@ -1,0 +1,8 @@
+[client_servers_1]
+linux1 ansible_host=192.168.100.19
+
+[client_servers_2]
+linux2 ansible_host=192.168.100.18
+
+#[client_servers_3]
+#linux3 ansible_host=192.168.100.20
